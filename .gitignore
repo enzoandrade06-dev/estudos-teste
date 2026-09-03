@@ -42,3 +42,6 @@ Thumbs.db
 
 # Conductor
 .context/
+
+# Cliente Prisma gerado (recriado por `npx prisma generate`)
+lib/db/gerado/

@@ -228,12 +228,12 @@ Dashboard com as duas metades da pergunta central:
 
 ## 6. Arquitetura
 
-**Next.js 15 (App Router) + TypeScript + Prisma + SQLite → Postgres.**
+**Next.js 16 (App Router) + TypeScript + Prisma 7 + SQLite → Postgres.**
 Justificativa completa em [ADR-0001](./adr/0001-stack-nextjs-typescript-prisma.md).
 
 | Camada | Escolha | Motivo |
 |---|---|---|
-| Framework | Next.js 15, App Router | Um projeto, um deploy, tipos compartilhados front/back |
+| Framework | Next.js 16, App Router | Um projeto, um deploy, tipos compartilhados front/back |
 | Linguagem | TypeScript (`strict`) | O modelo de domínio tem invariantes que o compilador segura |
 | Mutações | Server Actions | Sem camada REST manual para um app single-user |
 | ORM | Prisma | Migrations versionadas, tipos gerados do schema |
@@ -256,6 +256,8 @@ docs/           este plano + ADRs
 
 `lib/srs/` e `lib/estudo/` são as partes com **cobertura de teste obrigatória**. Se o
 agendamento ou a ordenação de módulos estiverem errados, todo o resto é decoração.
+`lib/db/revisao.integracao.test.ts` cobre a transação de escrita contra um SQLite
+temporário — é o que os testes de unidade não alcançam.
 
 ---
 
@@ -266,8 +268,8 @@ Cada fase é um PR próprio para `main`, com critério de pronto verificável.
 | Fase | Entrega | Critério de pronto |
 |---|---|---|
 | **0** | Plano + ADRs | PR revisado e mergeado ✅ |
-| **1** | Scaffold Next.js, Prisma, CI, `.gitignore`, `.env.example` | `npm run build` e testes verdes |
-| **2** | **Fatia vertical**: criar módulo → criar card → revisar com FSRS | O loop completo funciona de ponta a ponta |
+| **1** | Scaffold Next.js, Prisma, CI, `.gitignore`, `.env.example` | `npm run build` e testes verdes ✅ |
+| **2** | **Fatia vertical**: criar módulo → criar card → revisar com FSRS | O loop completo funciona de ponta a ponta ✅ |
 | **3** | **Decomposição**: caixa de entrada, triagem, prioridade, pré-requisitos, estados | Quebrar um recurso grande num plano de estudo priorizado |
 | **4** | **Elaboração**: notas em markdown, card a partir de trecho da nota | Módulo vira *compreendido* ao ter nota; cards nascem dela |
 | **5** | Dashboard: compreensão + retenção + previsão de carga | Gráficos com dados reais do histórico |

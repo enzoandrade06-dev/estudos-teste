@@ -16,7 +16,9 @@ Restrições relevantes:
 
 ## Decisão
 
-**Next.js 15 (App Router) + TypeScript `strict` + Prisma + SQLite → Postgres.**
+**Next.js (App Router) + TypeScript `strict` + Prisma + SQLite → Postgres.**
+
+Versões em uso: Next.js 16, React 19, Prisma 7.
 
 Mutações via **Server Actions**, sem camada REST manual.
 
