@@ -1,0 +1,15 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-fundo: oklch(0.16 0.01 260);
+  --color-superficie: oklch(0.21 0.012 260);
+  --color-borda: oklch(0.31 0.014 260);
+  --color-texto: oklch(0.94 0.005 260);
+  --color-suave: oklch(0.68 0.015 260);
+  --color-acento: oklch(0.72 0.13 200);
+}
+
+body {
+  background-color: var(--color-fundo);
+  color: var(--color-texto);
+}

@@ -1,0 +1,109 @@
+// Modelo de domínio — ver docs/PLANO.md §4
+//
+// Escopo desta fase (2 — fatia vertical): Área → Trilha → Módulo → Card → Review.
+// Caixa de entrada, Nota, Recurso, pré-requisitos, Sessão e Meta entram nas fases 3–6.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/db/gerado"
+  // O cliente é gerado como TypeScript. A extensão explícita nos imports permite
+  // rodar scripts (o seed) direto no Node, sem passar por um bundler.
+  importFileExtension = "ts"
+  moduleFormat        = "esm"
+}
+
+// A URL de conexão vive em prisma.config.ts (exigência do Prisma 7).
+datasource db {
+  provider = "sqlite"
+}
+
+model Area {
+  id       String   @id @default(cuid())
+  nome     String   @unique
+  criadaEm DateTime @default(now())
+
+  trilhas Trilha[]
+}
+
+/// Uma trilha exige objetivo — sem critério de conclusão, vira lista infinita
+/// (PLANO.md §4.2).
+model Trilha {
+  id       String    @id @default(cuid())
+  areaId   String
+  titulo   String
+  objetivo String
+  prazo    DateTime?
+  criadaEm DateTime  @default(now())
+
+  area    Area     @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  modulos Modulo[]
+
+  @@index([areaId])
+}
+
+/// Unidade temática pequena e autocontida — o resultado da decomposição do
+/// material bruto (PLANO.md §3.1).
+model Modulo {
+  id         String   @id @default(cuid())
+  trilhaId   String
+  titulo     String
+  ordem      Int
+  /// "essencial" | "importante" | "complementar" — ver lib/estudo/prioridade.ts.
+  /// SQLite não suporta enums no Prisma; a restrição vive no tipo TypeScript.
+  prioridade String   @default("importante")
+  criadoEm   DateTime @default(now())
+
+  trilha Trilha @relation(fields: [trilhaId], references: [id], onDelete: Cascade)
+  cards  Card[]
+
+  @@index([trilhaId, ordem])
+}
+
+/// Unidade atômica de revisão. O estado do FSRS fica em colunas explícitas, não
+/// em JSON opaco, para permitir migração se a lib mudar de formato (ADR-0002).
+model Card {
+  id       String   @id @default(cuid())
+  moduloId String
+  frente   String
+  verso    String
+  criadoEm DateTime @default(now())
+
+  // --- estado FSRS ---
+  due           DateTime
+  stability     Float     @default(0)
+  difficulty    Float     @default(0)
+  elapsedDays   Int       @default(0)
+  scheduledDays Int       @default(0)
+  learningSteps Int       @default(0)
+  reps          Int       @default(0)
+  lapses        Int       @default(0)
+  /// 0=New 1=Learning 2=Review 3=Relearning
+  state         Int       @default(0)
+  lastReview    DateTime?
+
+  modulo  Modulo   @relation(fields: [moduloId], references: [id], onDelete: Cascade)
+  reviews Review[]
+
+  @@index([moduloId])
+  @@index([due])
+}
+
+/// Log append-only: nunca sobrescrevemos histórico de revisão (PLANO.md §4.2).
+/// É o que permite re-simular o agendamento se trocarmos de algoritmo.
+model Review {
+  id             String   @id @default(cuid())
+  cardId         String
+  /// 1=De novo 2=Difícil 3=Bom 4=Fácil
+  nota           Int
+  /// Estado do card *antes* desta revisão.
+  estadoAnterior Int
+  intervaloDias  Int
+  stability      Float
+  difficulty     Float
+  revisadoEm     DateTime @default(now())
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@index([cardId, revisadoEm])
+  @@index([revisadoEm])
+}
